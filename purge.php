@@ -40,12 +40,6 @@ require_capability('local/purgeoldassignments:purgeassignments', $context);
 $url = new moodle_url('/local/purgeoldassignments/purge.php', ['id' => $id, 'purge' => $purge, 'component' => $component]);
 $PAGE->set_url($url);
 
-// File areas we want to allow purging.
-$fileareas = ['assignfeedback_editpdf', 
-              'assignfeedback_file',
-              'assignsubmission_file',
-              'local_assignhistory']; // local_assignhistory is a custom client specific area.
-
 $PAGE->set_heading($SITE->fullname);
 echo $OUTPUT->header();
 
@@ -67,30 +61,31 @@ if (!empty($purge)) {
     }
 } else {
     // Get Total size of current areas:
-    $filesizes = [];
-    foreach ($fileareas as $filearea) {
-        $sql = "SELECT sum(filesize) 
-                  FROM {files}
-                 WHERE component = :component
-             and contextid = :context";
-        $params = ['component' => $filearea, 'context' => $context->id];
-        $filesize = $DB->get_field_sql($sql, $params);
-        if (!empty($filesize)) {
-            $filesizes[$filearea] = $filesize;
-        }
-    }
+    $filesizes = local_purgeoldassignments_get_stats($context->id);
     foreach ($filesizes as $component => $filesize) {
-        echo $OUTPUT->heading($component);
-        echo get_string('componentcurrentsize', 'local_purgeoldassignments', display_size($filesize));
-        $select = [
-            1 => '1 year',
-            2 => '2 years',
-            3 => '3 years'
-        ];
-        echo "<div>" . get_string("purgefilesolderthan", "local_purgeoldassignments");
-        $url->param('component', $component);
-        echo $OUTPUT->single_select(new moodle_url($url), 'purge', $select);
-        echo "</div>";
+        if (!empty($filesize->total)) {
+            echo $OUTPUT->heading($component);
+            echo "<p>" . get_string('componentcurrentsize', 'local_purgeoldassignments', display_size($filesize->total)) ."</p>";
+            if (!empty($filesize->olderthan1)) {
+                echo "<p>" .get_string('componentolderthan1', 'local_purgeoldassignments', display_size($filesize->olderthan1)) ."</p>";
+            }
+            if (!empty($filesize->olderthan2)) {
+                echo "<p>" .get_string('componentolderthan2', 'local_purgeoldassignments', display_size($filesize->olderthan2)) ."</p>";
+            }
+            if (!empty($filesize->olderthan3)) {
+                echo "<p>" .get_string('componentolderthan3', 'local_purgeoldassignments', display_size($filesize->olderthan3)) ."</p>";
+            }
+
+            $select = [
+                1 => '1 year',
+                2 => '2 years',
+                3 => '3 years'
+            ];
+            echo "<div>" . get_string("purgefilesolderthan", "local_purgeoldassignments");
+            $url->param('component', $component);
+            echo $OUTPUT->single_select(new moodle_url($url), 'purge', $select);
+            echo "</div>";
+        }
     }
 
 }
