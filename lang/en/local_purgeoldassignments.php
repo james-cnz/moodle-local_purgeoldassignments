@@ -31,4 +31,4 @@ $string['purgeoldassignments:purgeassignments'] = 'Purge old assignments';
 $string['componentcurrentsize'] = 'Current disksize: {$a}';
 $string['purgefilesolderthan'] = "Purge files older than:";
 $string['areyousure'] = 'This action will delete historical data from the component {$a} in this assignment. This action is not reversible and causes data-loss, are you sure you want to do this?';
-$string['purgetriggered'] = 'A purge has been triggered';
+$string['purgetriggered'] = '{$a} file/s were deleted';

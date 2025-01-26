@@ -56,8 +56,8 @@ if (!empty($purge)) {
         die;
     }
     if ($confirm && confirm_sesskey()) {
-        local_purgeoldassignments_purge($context->id, $component, $purge);
-        echo $OUTPUT->notification(get_string("purgetriggered", 'local_purgeoldassignments'));
+        $filesdeleted = local_purgeoldassignments_purge($context->id, $component, $purge);
+        echo $OUTPUT->notification(get_string("purgetriggered", 'local_purgeoldassignments', $filesdeleted));
        
     } else {
         $cancelurl = new moodle_url('/local/purgeoldassignments/purge.php', ['id' => $id]);

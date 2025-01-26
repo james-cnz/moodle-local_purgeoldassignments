@@ -56,7 +56,7 @@ function local_purgeoldassignments_extend_settings_navigation(navigation_node $n
  * @param int $contextid
  * @param string $component
  * @param int $purge
- * @return void
+ * @return int count of deletions.
  */
 function local_purgeoldassignments_purge(int $contextid, $component, int $purge) {
     global $DB;
@@ -73,11 +73,15 @@ function local_purgeoldassignments_purge(int $contextid, $component, int $purge)
     $params = ['olderthan' => $olderthan, 'component' => $component, 'contextid' => $contextid];
     $records = $DB->get_recordset_sql($sql, $params);
     $fs = get_file_storage();
+    $count = 0;
     foreach ($records as $record) {
         $file = $fs->get_file_instance($record);
         if (!$file->is_directory()) {
             $file->delete();
+            $count++;
         }
     }
     $records->close();
+
+    return $count;
 }
