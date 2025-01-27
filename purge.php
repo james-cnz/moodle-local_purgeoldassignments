@@ -50,8 +50,18 @@ if (!empty($purge)) {
         die;
     }
     if ($confirm && confirm_sesskey()) {
-        $filesdeleted = local_purgeoldassignments_purge($context->id, $component, $purge);
-        echo $OUTPUT->notification(get_string("purgetriggered", 'local_purgeoldassignments', $filesdeleted));
+        // Schedule deletion task.
+        $task = new \local_purgeoldassignments\task\purge();
+        // add custom data
+        $task->set_custom_data([
+            'contextid' => $context->id,
+            'component' => $component,
+            'purge' => $purge
+        ]);
+        // queue it
+        \core\task\manager::queue_adhoc_task($task);
+
+        echo $OUTPUT->notification(get_string("purgetriggered", 'local_purgeoldassignments'));
        
     } else {
         $cancelurl = new moodle_url('/local/purgeoldassignments/purge.php', ['id' => $id]);
@@ -60,6 +70,23 @@ if (!empty($purge)) {
     
     }
 } else {
+    // Get pending ad-hoc tasks.
+    $sql = "SELECT *
+              FROM {task_adhoc}
+              WHERE component = 'local_purgeoldassignments'
+              AND customdata like '%contextid\":{$context->id},%'
+              AND faildelay = 0";
+    $adhoctasks = $DB->get_records_sql($sql);
+    $tasksrunning = [];
+    if (!empty($adhoctasks)) {
+        foreach ($adhoctasks as $task) {
+            $customdata = json_decode($task->customdata);
+            if ($customdata->contextid == $context->id) {
+                $tasksrunning[$customdata->component] = $task->timecreated;
+            }
+        }
+    }
+
     // Get Total size of current areas:
     $filesizes = local_purgeoldassignments_get_stats($context->id);
     foreach ($filesizes as $component => $filesize) {
@@ -76,15 +103,19 @@ if (!empty($purge)) {
                 echo "<p>" .get_string('componentolderthan3', 'local_purgeoldassignments', display_size($filesize->olderthan3)) ."</p>";
             }
 
-            $select = [
-                1 => '1 year',
-                2 => '2 years',
-                3 => '3 years'
-            ];
-            echo "<div>" . get_string("purgefilesolderthan", "local_purgeoldassignments");
-            $url->param('component', $component);
-            echo $OUTPUT->single_select(new moodle_url($url), 'purge', $select);
-            echo "</div>";
+            if (!empty($tasksrunning[$component])) {
+                echo "<div>".get_string("taskpending", "local_purgeoldassignments", userdate($tasksrunning[$component]))."</div>";
+            } else {
+                $select = [
+                    1 => '1 year',
+                    2 => '2 years',
+                    3 => '3 years'
+                ];
+                echo "<div>" . get_string("purgefilesolderthan", "local_purgeoldassignments");
+                $url->param('component', $component);
+                echo $OUTPUT->single_select(new moodle_url($url), 'purge', $select);
+                echo "</div>";
+            }
         }
     }
 

@@ -62,9 +62,22 @@ function local_purgeoldassignments_purge(int $contextid, $component, int $purge)
     global $DB;
 
     if (empty($purge) || empty($component) || empty($contextid)) {
-        // Safety check - don't allow all files to be deleted.
+        // Safety check.
         return;
     }
+    if (!in_array($component, local_purgeoldassignments_components())) {
+        // Not an allowed component.
+        return;
+    }
+    if ($purge < 1) {
+        return;
+    }
+    // Check to make sure contextid is valid - if not ignore and return.
+    $context = context::instance_by_id($contextid, IGNORE_MISSING);
+    if (empty($context)) {
+        return;
+    }
+
     $olderthan = time() - (YEARSECS * $purge);
     
     $sql = "SELECT *
@@ -87,6 +100,17 @@ function local_purgeoldassignments_purge(int $contextid, $component, int $purge)
 }
 
 /**
+ * List of fileareas components we support. 
+ *
+ * @return array
+ */
+function local_purgeoldassignments_components() {
+    return ['assignfeedback_editpdf',
+            'assignfeedback_file',
+            'assignsubmission_file',
+            'local_assignhistory']; // local_assignhistory is a custom client specific area.
+}
+/**
  * Get existing filesize stats.
  *
  * @param int $contextid
@@ -96,10 +120,7 @@ function local_purgeoldassignments_get_stats($contextid) {
     global $DB;
 
     // File areas we want to allow purging.
-    $fileareas = ['assignfeedback_editpdf',
-                  'assignfeedback_file',
-                  'assignsubmission_file',
-                  'local_assignhistory']; // local_assignhistory is a custom client specific area.
+    $fileareas = local_purgeoldassignments_components();
 
     $filesizes = [];
     $sql = "SELECT sum(filesize)
