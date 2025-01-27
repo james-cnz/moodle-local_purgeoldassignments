@@ -22,10 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
- /**
+/**
  * Inject a button for cleaning up old assignments.
  *
- * @return string|void
+ * @param navigation_node $navigation
+ * @param stdclass $context
+ * @return void
  */
 function local_purgeoldassignments_extend_settings_navigation(navigation_node $navigation, $context) {
     global $PAGE;
@@ -35,7 +37,7 @@ function local_purgeoldassignments_extend_settings_navigation(navigation_node $n
         return false;
     }
     if ($cm->modname != 'assign') {
-       return false;
+        return false;
     }
     if (!$assignsettingsnode = $navigation->find('modulesettings', navigation_node::TYPE_SETTING)) {
         return;
@@ -79,7 +81,7 @@ function local_purgeoldassignments_purge(int $contextid, $component, int $purge)
     }
 
     $olderthan = time() - (YEARSECS * $purge);
-    
+
     $sql = "SELECT *
             FROM {files}
             WHERE timemodified < :olderthan AND component = :component AND contextid = :contextid";
@@ -100,7 +102,7 @@ function local_purgeoldassignments_purge(int $contextid, $component, int $purge)
 }
 
 /**
- * List of fileareas components we support. 
+ * List of fileareas components we support.
  *
  * @return array
  */
@@ -108,7 +110,7 @@ function local_purgeoldassignments_components() {
     return ['assignfeedback_editpdf',
             'assignfeedback_file',
             'assignsubmission_file',
-            'local_assignhistory']; // local_assignhistory is a custom client specific area.
+            'local_assignhistory']; // The local_assignhistory is a custom client specific area.
 }
 /**
  * Get existing filesize stats.

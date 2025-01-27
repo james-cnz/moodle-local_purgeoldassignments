@@ -44,7 +44,7 @@ $PAGE->set_heading($SITE->fullname);
 echo $OUTPUT->header();
 
 if (!empty($purge)) {
-    $purgeoptions = [1,2,3];
+    $purgeoptions = [1, 2, 3];
     if (!in_array($purge, $purgeoptions)) {
         echo "invalid purge option";
         die;
@@ -52,22 +52,20 @@ if (!empty($purge)) {
     if ($confirm && confirm_sesskey()) {
         // Schedule deletion task.
         $task = new \local_purgeoldassignments\task\purge();
-        // add custom data
+        // Add custom data.
         $task->set_custom_data([
             'contextid' => $context->id,
             'component' => $component,
             'purge' => $purge
         ]);
-        // queue it
+        // Queue it.
         \core\task\manager::queue_adhoc_task($task);
 
         echo $OUTPUT->notification(get_string("purgetriggered", 'local_purgeoldassignments'));
-       
     } else {
         $cancelurl = new moodle_url('/local/purgeoldassignments/purge.php', ['id' => $id]);
         $url->param('confirm', 1);
         echo $OUTPUT->confirm(get_string('areyousure', 'local_purgeoldassignments', $component), $url, $cancelurl);
-    
     }
 } else {
     // Get pending ad-hoc tasks.
@@ -87,24 +85,28 @@ if (!empty($purge)) {
         }
     }
 
-    // Get Total size of current areas:
+    // Get Total size of current areas.
     $filesizes = local_purgeoldassignments_get_stats($context->id);
     foreach ($filesizes as $component => $filesize) {
         if (!empty($filesize->total)) {
             echo $OUTPUT->heading($component);
             echo "<p>" . get_string('componentcurrentsize', 'local_purgeoldassignments', display_size($filesize->total)) ."</p>";
             if (!empty($filesize->olderthan1)) {
-                echo "<p>" .get_string('componentolderthan1', 'local_purgeoldassignments', display_size($filesize->olderthan1)) ."</p>";
+                echo "<p>" .get_string('componentolderthan1', 'local_purgeoldassignments',
+                                        display_size($filesize->olderthan1)) ."</p>";
             }
             if (!empty($filesize->olderthan2)) {
-                echo "<p>" .get_string('componentolderthan2', 'local_purgeoldassignments', display_size($filesize->olderthan2)) ."</p>";
+                echo "<p>" .get_string('componentolderthan2', 'local_purgeoldassignments',
+                                       display_size($filesize->olderthan2)) ."</p>";
             }
             if (!empty($filesize->olderthan3)) {
-                echo "<p>" .get_string('componentolderthan3', 'local_purgeoldassignments', display_size($filesize->olderthan3)) ."</p>";
+                echo "<p>" .get_string('componentolderthan3', 'local_purgeoldassignments',
+                                       display_size($filesize->olderthan3)) ."</p>";
             }
 
             if (!empty($tasksrunning[$component])) {
-                echo "<div>".get_string("taskpending", "local_purgeoldassignments", userdate($tasksrunning[$component]))."</div>";
+                echo "<div>".get_string("taskpending", "local_purgeoldassignments",
+                                         userdate($tasksrunning[$component]))."</div>";
             } else {
                 $select = [
                     1 => '1 year',

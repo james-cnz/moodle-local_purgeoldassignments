@@ -25,7 +25,7 @@ use core\task\adhoc_task;
  * @copyright  2025 Catalyst IT
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class purge extends adhoc_task{
+class purge extends adhoc_task {
     /**
      * Execute the ad hoc task.
      */
