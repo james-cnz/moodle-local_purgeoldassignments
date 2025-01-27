@@ -71,7 +71,7 @@ if (!empty($purge)) {
     // Get pending ad-hoc tasks.
     $sql = "SELECT *
               FROM {task_adhoc}
-              WHERE component = 'local_purgeoldassignments'
+              WHERE (component = 'local_purgeoldassignments' or classname = '\\local_purgeoldassignments\\task\\purge')
               AND customdata like '%contextid\":{$context->id},%'
               AND faildelay = 0";
     $adhoctasks = $DB->get_records_sql($sql);
@@ -80,7 +80,8 @@ if (!empty($purge)) {
         foreach ($adhoctasks as $task) {
             $customdata = json_decode($task->customdata);
             if ($customdata->contextid == $context->id) {
-                $tasksrunning[$customdata->component] = $task->timecreated;
+                $time = !empty($task->timecreated) ? $task->timecreated : $task->nextruntime;
+                $tasksrunning[$customdata->component] = $time;
             }
         }
     }
