@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 $string['pluginname'] = 'Purge old assignments';
 $string['privacy:metadata'] = 'The Purge old assignments plugin doesn\'t store any personal data.';
 $string['purgeoldassignments:purgeassignments'] = 'Purge old assignments';
-$string['componentcurrentsize'] = 'Current disksize: {$a}';
+$string['componentcurrentsize'] = 'Total size: {$a}';
 $string['componentolderthan1'] = 'Older than 1 year: {$a}';
 $string['componentolderthan2'] = 'Older than 2 years: {$a}';
 $string['componentolderthan3'] = 'Older than 3 years: {$a}';
