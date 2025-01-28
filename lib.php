@@ -123,48 +123,54 @@ function local_purgeoldassignments_get_stats($contextid) {
 
     // File areas we want to allow purging.
     $fileareas = local_purgeoldassignments_components();
-
+    list($componentsql, $params) = $DB->get_in_or_equal($fileareas, SQL_PARAMS_NAMED);
     $filesizes = [];
-    $sql = "SELECT sum(filesize)
-                  FROM {files}
-                 WHERE component = :component
-             and contextid = :context";
-    $params = ['context' => $contextid];
-
-    foreach ($fileareas as $filearea) {
-        $filesizes[$filearea] = new stdClass;
-        $params['component'] = $filearea;
-        $filesize = $DB->get_field_sql($sql, $params);
-        if (!empty($filesize)) {
-            $filesizes[$filearea]->total = $filesize;
+    $sqlbase = "SELECT sum(filesize) as filesize, component
+             FROM {files}
+            WHERE component {$componentsql}
+                  and contextid = :context";
+    $sqlend = " GROUP BY component";
+    $params['context'] = $contextid;
+    $records = $DB->get_records_sql($sqlbase.$sqlend, $params);
+    foreach ($records as $record) {
+        $filesizes[$record->component] = new stdClass;
+        if (!empty($record->filesize)) {
+            $filesizes[$record->component]->total = $record->filesize;
         }
     }
 
-    foreach ($fileareas as $filearea) {
-        $params['component'] = $filearea;
-        $params['olderthan'] = time() - (YEARSECS);
-        $filesize = $DB->get_field_sql($sql ." AND timemodified < :olderthan ", $params);
-        if (!empty($filesize)) {
-            $filesizes[$filearea]->olderthan1 = $filesize;
+    // Now get stats for older than 1 year.
+    $params['olderthan'] = time() - (YEARSECS);
+    $sql = $sqlbase." AND timemodified < :olderthan ".$sqlend;
+    $records = $DB->get_records_sql($sql, $params);
+    foreach ($records as $record) {
+        $filesizes[$record->component] = new stdClass;
+        if (!empty($record->filesize)) {
+            $filesizes[$record->component]->olderthan1 = $record->filesize;
         }
     }
 
-    foreach ($fileareas as $filearea) {
-        $params['component'] = $filearea;
-        $params['olderthan'] = time() - (YEARSECS * 2);
-        $filesize = $DB->get_field_sql($sql ." AND timemodified < :olderthan ", $params);
-        if (!empty($filesize)) {
-            $filesizes[$filearea]->olderthan2 = $filesize;
+    // Now get stats for older than 2 years.
+    $params['olderthan'] = time() - (YEARSECS * 2);
+    $sql = $sqlbase." AND timemodified < :olderthan ".$sqlend;
+    $records = $DB->get_records_sql($sql, $params);
+    foreach ($records as $record) {
+        $filesizes[$record->component] = new stdClass;
+        if (!empty($record->filesize)) {
+            $filesizes[$record->component]->olderthan2 = $record->filesize;
         }
     }
 
-    foreach ($fileareas as $filearea) {
-        $params['component'] = $filearea;
-        $params['olderthan'] = time() - (YEARSECS * 3);
-        $filesize = $DB->get_field_sql($sql ." AND timemodified < :olderthan ", $params);
-        if (!empty($filesize)) {
-            $filesizes[$filearea]->olderthan3 = $filesize;
+    // Now get stats for older than 3 year.
+    $params['olderthan'] = time() - (YEARSECS * 3);
+    $sql = $sqlbase." AND timemodified < :olderthan ".$sqlend;
+    $records = $DB->get_records_sql($sql, $params);
+    foreach ($records as $record) {
+        $filesizes[$record->component] = new stdClass;
+        if (!empty($record->filesize)) {
+            $filesizes[$record->component]->olderthan3 = $record->filesize;
         }
     }
+
     return $filesizes;
 }
