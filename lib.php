@@ -109,8 +109,7 @@ function local_purgeoldassignments_purge(int $contextid, $component, int $purge)
 function local_purgeoldassignments_components() {
     return ['assignfeedback_editpdf',
             'assignfeedback_file',
-            'assignsubmission_file',
-            'local_assignhistory']; // The local_assignhistory is a custom client specific area.
+            'assignsubmission_file'];
 }
 /**
  * Get existing filesize stats.
