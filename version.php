@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component    = 'local_purgeoldassignments';
-$plugin->release      = 2025012401;
-$plugin->version      = 2025012401;
+$plugin->release      = 2025021000;
+$plugin->version      = 2025021000;
 $plugin->requires     = 2017111300;
 $plugin->supported    = [34, 405];
 $plugin->maturity     = MATURITY_STABLE;
