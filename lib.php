@@ -84,7 +84,7 @@ function local_purgeoldassignments_purge(int $contextid, $component, int $purge)
 
     $sql = "SELECT *
             FROM {files}
-            WHERE timemodified < :olderthan AND component = :component AND contextid = :contextid";
+            WHERE timemodified < :olderthan AND component = :component AND contextid = :contextid and filearea <> 'stamps'";
     $params = ['olderthan' => $olderthan, 'component' => $component, 'contextid' => $contextid];
     $records = $DB->get_recordset_sql($sql, $params);
     $fs = get_file_storage();
@@ -127,6 +127,7 @@ function local_purgeoldassignments_get_stats($contextid) {
     $sqlbase = "SELECT sum(filesize) as filesize, component
              FROM {files}
             WHERE component {$componentsql}
+                  and filearea <> 'stamps'
                   and contextid = :context";
     $sqlend = " GROUP BY component";
     $params['context'] = $contextid;
