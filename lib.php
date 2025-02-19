@@ -144,7 +144,6 @@ function local_purgeoldassignments_get_stats($contextid) {
     $sql = $sqlbase." AND timemodified < :olderthan ".$sqlend;
     $records = $DB->get_records_sql($sql, $params);
     foreach ($records as $record) {
-        $filesizes[$record->component] = new stdClass;
         if (!empty($record->filesize)) {
             $filesizes[$record->component]->olderthan1 = $record->filesize;
         }
@@ -155,7 +154,6 @@ function local_purgeoldassignments_get_stats($contextid) {
     $sql = $sqlbase." AND timemodified < :olderthan ".$sqlend;
     $records = $DB->get_records_sql($sql, $params);
     foreach ($records as $record) {
-        $filesizes[$record->component] = new stdClass;
         if (!empty($record->filesize)) {
             $filesizes[$record->component]->olderthan2 = $record->filesize;
         }
@@ -166,7 +164,6 @@ function local_purgeoldassignments_get_stats($contextid) {
     $sql = $sqlbase." AND timemodified < :olderthan ".$sqlend;
     $records = $DB->get_records_sql($sql, $params);
     foreach ($records as $record) {
-        $filesizes[$record->component] = new stdClass;
         if (!empty($record->filesize)) {
             $filesizes[$record->component]->olderthan3 = $record->filesize;
         }
