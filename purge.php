@@ -23,6 +23,7 @@
  */
 
 require('../../config.php');
+require_once($CFG->dirroot . '/local/purgeoldassignments/lib.php');
 
 $id = required_param('id', PARAM_INT);
 $purge = optional_param('purge', null, PARAM_INT);
@@ -41,87 +42,174 @@ $url = new moodle_url('/local/purgeoldassignments/purge.php', ['id' => $id, 'pur
 $PAGE->set_url($url);
 
 $PAGE->set_heading($SITE->fullname);
-echo $OUTPUT->header();
 
-if (!empty($purge)) {
-    $purgeoptions = [1, 2, 3];
-    if (!in_array($purge, $purgeoptions)) {
-        echo "invalid purge option";
-        die;
+// Process any form submission.
+if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
+    $components = local_purgeoldassignments_components();
+
+    foreach ($components as $component) {
+        $scheduled = optional_param($component . 'scheduled', false, PARAM_INT);
+        $newtimespan = (string) optional_param($component . 'timespan', false, PARAM_INT);
+        $currenttimespan = $DB->get_field('local_purgeoldassignments', 'timespan', ['cmid' => $id, 'component' => $component]);
+
+        if ($currenttimespan && $scheduled == false) {
+            $DB->delete_records('local_purgeoldassignments', ['cmid' => $id, 'component' => $component]);
+        } else if ($scheduled) {
+            if ($currenttimespan && $newtimespan !== $currenttimespan) {
+                $newdata = new stdClass();
+                $newdata->timespan = $newtimespan;
+                $newdata->timemodified = time();
+                $newdata->usermodified = $USER->id;
+                $DB->set_fields('local_purgeoldassignments', $newdata, ['cmid' => $id, 'component' => $component]);
+            } else if (empty($currenttimespan)) {
+                $data = new stdClass();
+                $data->cmid = $id;
+                $data->component = $component;
+                $data->timespan = $newtimespan;
+                $data->timemodified = time();
+                $data->usermodified = $USER->id;
+                $DB->insert_record('local_purgeoldassignments', $data);
+            }
+        }
     }
-    if ($confirm && confirm_sesskey()) {
-        // Schedule deletion task.
-        $task = new \local_purgeoldassignments\task\purge();
-        // Add custom data.
-        $task->set_custom_data([
-            'contextid' => $context->id,
-            'component' => $component,
-            'purge' => $purge
-        ]);
-        // Queue it.
-        \core\task\manager::queue_adhoc_task($task);
+    $url->remove_params('purge', 'component');
+    redirect($url, get_string('changessaved'), 1);
 
-        echo $OUTPUT->notification(get_string("purgetriggered", 'local_purgeoldassignments'));
-    } else {
+} else if (!empty($purge) && $confirm === 1 && confirm_sesskey()) {
+    // Schedule deletion task.
+    $task = new \local_purgeoldassignments\task\purge();
+    // Add custom data.
+    $task->set_custom_data([
+        'contextid' => $context->id,
+        'component' => $component,
+        'purge' => $purge
+    ]);
+    // Queue it.
+    \core\task\manager::queue_adhoc_task($task);
+
+    $url->remove_params('purge', 'component');
+    redirect($url, get_string('purgetriggered', 'local_purgeoldassignments'), 1);
+
+} else {
+    echo $OUTPUT->header();
+
+    if ($confirm === 2) {
+        $purgeoptions = [1, 2, 3];
+        if (!in_array($purge, $purgeoptions)) {
+            echo "invalid purge option";
+            die;
+        }
         $cancelurl = new moodle_url('/local/purgeoldassignments/purge.php', ['id' => $id]);
         $url->param('confirm', 1);
         echo $OUTPUT->confirm(get_string('areyousure', 'local_purgeoldassignments', $component), $url, $cancelurl);
-    }
-} else {
-    // Get pending ad-hoc tasks.
-    $sql = "SELECT *
-              FROM {task_adhoc}
-              WHERE (component = 'local_purgeoldassignments' or classname = '\\local_purgeoldassignments\\task\\purge')
-              AND customdata like '%contextid\":{$context->id},%'
-              AND faildelay = 0";
-    $adhoctasks = $DB->get_records_sql($sql);
-    $tasksrunning = [];
-    if (!empty($adhoctasks)) {
-        foreach ($adhoctasks as $task) {
-            $customdata = json_decode($task->customdata);
-            if ($customdata->contextid == $context->id) {
-                $time = !empty($task->timecreated) ? $task->timecreated : $task->nextruntime;
-                $tasksrunning[$customdata->component] = $time;
+    } else {
+        // Get pending ad-hoc tasks.
+        $sql = "SELECT *
+                FROM {task_adhoc}
+                WHERE (component = 'local_purgeoldassignments' or classname = '\\local_purgeoldassignments\\task\\purge')
+                AND customdata like '%contextid\":{$context->id},%'
+                AND faildelay = 0";
+        $adhoctasks = $DB->get_records_sql($sql);
+        $tasksrunning = [];
+        if (!empty($adhoctasks)) {
+            foreach ($adhoctasks as $task) {
+                $customdata = json_decode($task->customdata);
+                if ($customdata->contextid == $context->id) {
+                    $time = !empty($task->timecreated) ? $task->timecreated : $task->nextruntime;
+                    $tasksrunning[$customdata->component] = $time;
+                }
             }
         }
-    }
 
-    // Get Total size of current areas.
-    $filesizes = local_purgeoldassignments_get_stats($context->id);
-    foreach ($filesizes as $component => $filesize) {
-        if (!empty($filesize->total)) {
-            echo $OUTPUT->heading($component);
-            echo "<p>" . get_string('componentcurrentsize', 'local_purgeoldassignments', display_size($filesize->total)) ."</p>";
-            if (!empty($filesize->olderthan1)) {
-                echo "<p>" .get_string('componentolderthan1', 'local_purgeoldassignments',
-                                        display_size($filesize->olderthan1)) ."</p>";
-            }
-            if (!empty($filesize->olderthan2)) {
-                echo "<p>" .get_string('componentolderthan2', 'local_purgeoldassignments',
-                                       display_size($filesize->olderthan2)) ."</p>";
-            }
-            if (!empty($filesize->olderthan3)) {
-                echo "<p>" .get_string('componentolderthan3', 'local_purgeoldassignments',
-                                       display_size($filesize->olderthan3)) ."</p>";
+        // Get Total size of current areas.
+        $filesizes = local_purgeoldassignments_get_stats($context->id);
+
+        echo html_writer::start_tag('form', ['action' => $url, 'method' => 'post']);
+        echo html_writer::start_tag('div');
+        echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'sesskey', 'value' => sesskey()]);
+        echo html_writer::empty_tag('input', ['type' => 'hidden', 'name' => 'id', 'value' => $id]);
+
+        $table = new html_table();
+        $table->head  = [get_string('component', 'local_purgeoldassignments'),
+                        get_string('sizeinfo', 'local_purgeoldassignments'),
+                        get_string('enablesheduledpurge', 'local_purgeoldassignments'),
+                        get_string('schedulefor', 'local_purgeoldassignments')];
+        $table->colclasses = ['leftalign', 'leftalign', 'mdl-align', 'mdl-align'];
+        $table->attributes['class'] = 'purge-old-assignments-table generaltable';
+        $table->data = [];
+
+        foreach ($filesizes as $component => $filesize) {
+            $row = [];
+            $row[] = $component;
+
+            $totalsize = !empty($filesize->total) ? $filesize->total : 0;
+
+            $componentinfo = html_writer::tag('p', get_string('componentcurrentsize', 'local_purgeoldassignments',
+                            display_size($totalsize)));
+
+            if (!empty($totalsize)) {
+
+                $filesizesperperiods = [];
+                if (!empty($filesize->olderthan1)) {
+                    $filesizesperperiods["1"] = get_string('componentolderthan1', 'local_purgeoldassignments',
+                                            display_size($filesize->olderthan1));
+                }
+                if (!empty($filesize->olderthan2)) {
+                    $filesizesperperiods["2"] = get_string('componentolderthan2', 'local_purgeoldassignments',
+                                            display_size($filesize->olderthan2));
+                }
+                if (!empty($filesize->olderthan3)) {
+                    $filesizesperperiods["3"] = get_string('componentolderthan3', 'local_purgeoldassignments',
+                                            display_size($filesize->olderthan3));
+                }
+
+                if (empty($tasksrunning[$component])) {
+                    foreach ($filesizesperperiods as $key => $value) {
+                        $purgeurl = new moodle_url($url, ['component' => $component, 'purge' => $key, 'confirm' => 2]);
+                        $filesizesperperiods[$key] .= ' (' .
+                                    html_writer::link($purgeurl, get_string('manualpurge', 'local_purgeoldassignments')) . ')';
+                    }
+                }
+
+                $componentinfo .= html_writer::alist($filesizesperperiods);
+
             }
 
             if (!empty($tasksrunning[$component])) {
-                echo "<div>".get_string("taskpending", "local_purgeoldassignments",
-                                         userdate($tasksrunning[$component]))."</div>";
-            } else {
-                $select = [
-                    1 => '1 year',
-                    2 => '2 years',
-                    3 => '3 years'
-                ];
-                echo "<div>" . get_string("purgefilesolderthan", "local_purgeoldassignments");
-                $url->param('component', $component);
-                echo $OUTPUT->single_select(new moodle_url($url), 'purge', $select);
-                echo "</div>";
+                $componentinfo .= html_writer::start_tag('b', array()) .
+                        get_string("taskpending", "local_purgeoldassignments", userdate($tasksrunning[$component]))
+                        . html_writer::end_tag('b');
             }
+
+            $row[] = $componentinfo;
+
+            $currenttimespan = $DB->get_field('local_purgeoldassignments', 'timespan', ['cmid' => $id, 'component' => $component]);
+
+            $isenabled = $currenttimespan ? 1 : 0;
+            $enable = html_writer::checkbox($component . 'scheduled', 1, $isenabled);
+            $row[] = $enable;
+
+            $select = html_writer::label('0', 'menu'. $component . 'timespan', false, ['class' => 'accesshide']);
+            $choices = [
+                1 => '1 year',
+                2 => '2 years',
+                3 => '3 years'
+            ];
+            $selected = $currenttimespan ? $currenttimespan : '';
+            $select .= html_writer::select($choices, $component . 'timespan', $selected);
+            $row[] = $select;
+
+            $table->data[] = $row;
         }
+
+        echo html_writer::table($table);
+        echo html_writer::start_tag('div', ['class' => 'mdl-align']);
+        echo html_writer::empty_tag('input', ['type' => 'submit', 'name' => 'savescheduling', 'value' => get_string('savechanges')]);
+        echo html_writer::end_tag('div');
+        echo html_writer::end_tag('div');
+        echo html_writer::end_tag('form');
+
     }
 
+    echo $OUTPUT->footer();
 }
-
-echo $OUTPUT->footer();

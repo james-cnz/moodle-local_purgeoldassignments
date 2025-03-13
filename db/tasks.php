@@ -15,18 +15,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information for Purgeoldassignments
+ * Definition of the Puge Old Assignments plugin scheduled tasks.
  *
- * @package    local_purgeoldassignments
- * @copyright  Catalyst IT
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   local_purgeoldassignments
+ * @copyright 2025 Catalyst IT
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component    = 'local_purgeoldassignments';
-$plugin->release      = 2025031300;
-$plugin->version      = 2025031300;
-$plugin->requires     = 2017111300;
-$plugin->supported    = [34, 405];
-$plugin->maturity     = MATURITY_STABLE;
+$tasks = [
+    [
+        'classname' => 'local_purgeoldassignments\task\purge_old_assignments',
+        'blocking' => 0,
+        'minute' => '0',
+        'hour' => '4',
+        'day' => '*',
+        'dayoftheweek' => '*',
+        'month' => '*',
+    ]
+];
