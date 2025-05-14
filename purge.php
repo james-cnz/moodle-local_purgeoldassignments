@@ -192,6 +192,7 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
 
             $select = html_writer::label('0', 'menu'. $component . 'timespan', false, ['class' => 'accesshide']);
             $choices = [
+                0 => '0 years',
                 1 => '1 year',
                 2 => '2 years',
                 3 => '3 years'
