@@ -67,6 +67,10 @@ function local_purgeoldassignments_purge(int $contextid, $component, $purge) {
         // Safety check.
         return;
     }
+    if (!in_array($component, local_purgeoldassignments_components())) {
+        // Not an allowed component.
+        return;
+    }
     if ($purge < 0) {
         return;
     }
