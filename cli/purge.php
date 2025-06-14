@@ -25,14 +25,12 @@
 define('CLI_SCRIPT', true);
 
 require(__DIR__ . '/../../../config.php');
-require_once("{$CFG->libdir}/clilib.php");
-require_once('../lib.php');
+require_once($CFG->libdir . "/clilib.php");
+require_once(__DIR__ . '/../lib.php');
 
 list($options, $unrecognized) = cli_get_params(
     [
         'help' => false,
-        'coursecatid' => null,
-        'courseid' => null,
         'cmid' => null,
         'contextid' => null,
         'component' => null,
@@ -48,7 +46,7 @@ if ($unrecognized) {
 }
 
 // Check non-negative integer arguments.
-foreach (['coursecatid', 'courseid', 'cmid', 'contextid'] as $optionname) {
+foreach (['cmid', 'contextid'] as $optionname) {
     if (isset($options[$optionname]) && (!is_string($options[$optionname]) || !preg_match('/^\d+$/', $options[$optionname]))) {
         cli_error(get_string(
             'cliincorrectvalueerror', 'admin',
@@ -78,8 +76,6 @@ foreach (['minageyears'] as $optionname) {
 }
 
 // Fetch arguments.
-$coursecatid = isset($options['coursecatid']) ? intval($options['coursecatid']) : null;
-$courseid = isset($options['courseid']) ? intval($options['courseid']) : null;
 $cmid = isset($options['cmid']) ? intval($options['cmid']) : null;
 $contextid = isset($options['contextid']) ? intval($options['contextid']) : null;
 $componentname = $options['component'] ?? null;
@@ -89,45 +85,22 @@ $help = "Purge assignment component files.
 
 Options:
  -h, --help             Print out this help
-     --coursecatid      Course category ID
-     --courseid         Course ID
      --cmid             Course module ID
      --contextid        Context ID
      --component        Name of component
      --minageyears      Minimum age in years
 
+Examples:
+\$sudo -u www-data /usr/bin/php local/purgeoldassignments/cli/purge.php --cmid=123456 --component=component_name --minageyears=2
+\$sudo -u www-data /usr/bin/php local/purgeoldassignments/cli/purge.php --contextid=123456 --component=component_name --minageyears=0
 ";
 
-if ($options['help'] !== false) {
+if ($options['help']) {
     echo $help;
     exit(0);
 }
 
 $context = null;
-
-if (isset($coursecatid)) {
-    try {
-        $newcontext = context_coursecat::instance($coursecatid);
-    } catch (moodle_exception $e) {
-        cli_error("Course category not found.");
-    }
-    if (isset($context) && !$context->is_parent_of($newcontext, false)) {
-        cli_error("Incompatible contexts specified.");
-    }
-    $context = $newcontext;
-}
-
-if (isset($courseid)) {
-    try {
-        $newcontext = context_course::instance($courseid);
-    } catch (moodle_exception $e) {
-        cli_error("Course not found.");
-    }
-    if (isset($context) && !$context->is_parent_of($newcontext, false)) {
-        cli_error("Incompatible contexts specified.");
-    }
-    $context = $newcontext;
-}
 
 if (isset($cmid)) {
     try {
@@ -157,7 +130,7 @@ if (!isset($context)) {
     cli_error("Context not specified.");
 }
 
-if (($context::LEVEL != CONTEXT_MODULE)) {
+if (($context->contextlevel != CONTEXT_MODULE)) {
     cli_error("Context not module.");
 }
 
@@ -178,7 +151,7 @@ if (!in_array($componentname, local_purgeoldassignments_components())) {
 }
 
 if (!isset($minageyears)) {
-    cli_error("Minium age not specified.");
+    cli_error("Minimum age not specified.");
 }
 
 $count = local_purgeoldassignments_purge($context->id, $componentname, $minageyears);
