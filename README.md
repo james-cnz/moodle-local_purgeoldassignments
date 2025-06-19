@@ -6,7 +6,11 @@ This plugin allows a site manager to delete historical files stored within an as
 * assignfeedback_file
 * assignsubmission_file
 
+Purging files can be done in two ways:
+- manual purge: schedules an adhoc task for the selected file area and interval.
+- automated purge: can be enabled by file area, each with its own interval.
+
 This was developed for a specific use-case and there is room for improvement - pull requests are always welcome.
 
 ## Example usage
-![purgeoldassignments](https://github.com/user-attachments/assets/6b344986-78e3-4f62-80df-37a61db7017b)
+![image](https://github.com/user-attachments/assets/bf20c6cc-3a9c-498a-9c88-a247c791159b)
