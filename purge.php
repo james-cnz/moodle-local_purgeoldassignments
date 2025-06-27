@@ -46,12 +46,12 @@ $PAGE->set_heading($SITE->fullname);
 // Process any form submission.
 if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
     $components = local_purgeoldassignments_components();
+    $incompleteconfig = false;
 
     foreach ($components as $component) {
         $scheduled = optional_param($component . 'scheduled', false, PARAM_BOOL);
         $newtimespan = optional_param($component . 'timespan', '', PARAM_ALPHANUM);
         $currentrecord = $DB->get_record('local_purgeoldassignments', ['cmid' => $id, 'component' => $component]);
-        $incompleteconfig = false;
 
         if ($currentrecord && !$scheduled) {
             $DB->delete_records('local_purgeoldassignments', ['id' => $currentrecord->id]);
