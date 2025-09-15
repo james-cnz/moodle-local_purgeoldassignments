@@ -45,7 +45,7 @@ function xmldb_local_purgeoldassignments_upgrade($oldversion) {
         $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
 
         // Adding keys to table local_purgeoldassignments.
-        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
 
         // Conditionally launch create table for local_purgeoldassignments.
         if (!$dbman->table_exists($table)) {

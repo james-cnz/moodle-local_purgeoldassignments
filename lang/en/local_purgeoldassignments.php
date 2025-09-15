@@ -25,21 +25,21 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'Purge old assignments';
-$string['privacy:metadata'] = 'The Purge old assignments plugin doesn\'t store any personal data.';
-$string['purgeoldassignments:purgeassignments'] = 'Purge old assignments';
+$string['areyousure'] = 'This action will delete historical data from the component {$a} in this assignment. This action is not reversible and causes data-loss, are you sure you want to do this?';
 $string['component'] = 'Component';
 $string['componentcurrentsize'] = 'Total size: {$a}';
 $string['componentolderthan1'] = 'Older than 1 year: {$a}';
 $string['componentolderthan2'] = 'Older than 2 years: {$a}';
 $string['componentolderthan3'] = 'Older than 3 years: {$a}';
 $string['enablesheduledpurge'] = 'Enable scheduled purge';
-$string['purgefilesolderthan'] = "Purge files older than:";
-$string['areyousure'] = 'This action will delete historical data from the component {$a} in this assignment. This action is not reversible and causes data-loss, are you sure you want to do this?';
 $string['incompleteconfig'] = 'Some changes could not be saved as no schedule was set. For each component you wish to enable the scheduled purge for, make sure to tick the checkbox and set a value in the "Schedule for files older than" dropdown.';
+$string['manualpurge'] = 'manual purge';
+$string['pluginname'] = 'Purge old assignments';
+$string['privacy:metadata'] = 'The Purge old assignments plugin doesn\'t store any personal data.';
+$string['purgefilesolderthan'] = "Purge files older than:";
+$string['purgeoldassignments:purgeassignments'] = 'Purge old assignments';
 $string['purgetriggered'] = 'The purge action was scheduled.';
 $string['schedulefor'] = 'Schedule for files older than';
 $string['sizeinfo'] = 'Size info';
-$string['taskpending'] = 'A purge action was triggered at {$a} and is pending completion';
 $string['task:purgeoldassignments'] = 'Purge old assignments';
-$string['manualpurge'] = 'manual purge';
+$string['taskpending'] = 'A purge action was triggered at {$a} and is pending completion';

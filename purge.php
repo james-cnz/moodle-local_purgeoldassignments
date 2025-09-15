@@ -93,7 +93,7 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
     $task->set_custom_data([
         'contextid' => $context->id,
         'component' => $component,
-        'purge' => $purge
+        'purge' => $purge,
     ]);
     // Queue it.
     \core\task\manager::queue_adhoc_task($task);
@@ -187,7 +187,7 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
             }
 
             if (!empty($tasksrunning[$component])) {
-                $componentinfo .= html_writer::start_tag('b', array()) .
+                $componentinfo .= html_writer::start_tag('b', []) .
                         get_string("taskpending", "local_purgeoldassignments", userdate($tasksrunning[$component]))
                         . html_writer::end_tag('b');
             }
@@ -204,7 +204,7 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
             $choices = [
                 1 => '1 year',
                 2 => '2 years',
-                3 => '3 years'
+                3 => '3 years',
             ];
             $selected = $currentrecord ? $currentrecord->timespan : '';
             $select .= html_writer::select($choices, $component . 'timespan', $selected);
@@ -215,7 +215,10 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
 
         echo html_writer::table($table);
         echo html_writer::start_tag('div', ['class' => 'mdl-align']);
-        echo html_writer::empty_tag('input', ['type' => 'submit', 'name' => 'savescheduling', 'value' => get_string('savechanges')]);
+        echo html_writer::empty_tag(
+            'input',
+            ['type' => 'submit', 'name' => 'savescheduling', 'value' => get_string('savechanges')]
+        );
         echo html_writer::end_tag('div');
         echo html_writer::end_tag('div');
         echo html_writer::end_tag('form');
