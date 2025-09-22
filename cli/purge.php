@@ -91,8 +91,8 @@ Options:
      --minageyears      Minimum age in years
 
 Examples:
-\$sudo -u www-data /usr/bin/php local/purgeoldassignments/cli/purge.php --cmid=123456 --component=component_name --minageyears=2
-\$sudo -u www-data /usr/bin/php local/purgeoldassignments/cli/purge.php --contextid=123456 --component=component_name --minageyears=0
+\$sudo -u www-data /usr/bin/php local/purgeoldassignments/cli/purge.php --cmid=12345 --component=component_name --minageyears=2
+\$sudo -u www-data /usr/bin/php local/purgeoldassignments/cli/purge.php --contextid=12345 --component=component_name --minageyears=0
 ";
 
 if ($options['help']) {
