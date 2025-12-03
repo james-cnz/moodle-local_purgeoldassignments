@@ -30,7 +30,7 @@ $purge = optional_param('purge', null, PARAM_INT);
 $component = optional_param('component', '', PARAM_COMPONENT);
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
-list ($course, $cm) = get_course_and_cm_from_cmid($id, 'assign');
+[$course, $cm] = get_course_and_cm_from_cmid($id, 'assign');
 
 require_login($course, true, $cm);
 
@@ -85,7 +85,6 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
     } else {
         redirect($url, get_string('changessaved'), 1);
     }
-
 } else if (!empty($purge) && $confirm === 1 && confirm_sesskey()) {
     // Schedule deletion task.
     $task = new \local_purgeoldassignments\task\purge();
@@ -100,7 +99,6 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
 
     $url->remove_params('purge', 'component');
     redirect($url, get_string('purgetriggered', 'local_purgeoldassignments'), 1);
-
 } else {
     echo $OUTPUT->header();
 
@@ -155,23 +153,33 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
 
             $totalsize = !empty($filesize->total) ? $filesize->total : 0;
 
-            $componentinfo = html_writer::tag('p', get_string('componentcurrentsize', 'local_purgeoldassignments',
-                            display_size($totalsize)));
+            $componentinfo = html_writer::tag(
+                'p',
+                get_string('componentcurrentsize', 'local_purgeoldassignments', display_size($totalsize))
+            );
 
             if (!empty($totalsize)) {
-
                 $filesizesperperiods = [];
                 if (!empty($filesize->olderthan1)) {
-                    $filesizesperperiods["1"] = get_string('componentolderthan1', 'local_purgeoldassignments',
-                                            display_size($filesize->olderthan1));
+                    $filesizesperperiods["1"] = get_string(
+                        'componentolderthan1',
+                        'local_purgeoldassignments',
+                        display_size($filesize->olderthan1)
+                    );
                 }
                 if (!empty($filesize->olderthan2)) {
-                    $filesizesperperiods["2"] = get_string('componentolderthan2', 'local_purgeoldassignments',
-                                            display_size($filesize->olderthan2));
+                    $filesizesperperiods["2"] = get_string(
+                        'componentolderthan2',
+                        'local_purgeoldassignments',
+                        display_size($filesize->olderthan2)
+                    );
                 }
                 if (!empty($filesize->olderthan3)) {
-                    $filesizesperperiods["3"] = get_string('componentolderthan3', 'local_purgeoldassignments',
-                                            display_size($filesize->olderthan3));
+                    $filesizesperperiods["3"] = get_string(
+                        'componentolderthan3',
+                        'local_purgeoldassignments',
+                        display_size($filesize->olderthan3)
+                    );
                 }
 
                 if (empty($tasksrunning[$component])) {
@@ -183,7 +191,6 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
                 }
 
                 $componentinfo .= html_writer::alist($filesizesperperiods);
-
             }
 
             if (!empty($tasksrunning[$component])) {
@@ -200,7 +207,7 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
             $enable = html_writer::checkbox($component . 'scheduled', 1, $isenabled);
             $row[] = $enable;
 
-            $select = html_writer::label('0', 'menu'. $component . 'timespan', false, ['class' => 'accesshide']);
+            $select = html_writer::label('0', 'menu' . $component . 'timespan', false, ['class' => 'accesshide']);
             $choices = [
                 1 => '1 year',
                 2 => '2 years',
@@ -222,7 +229,6 @@ if (optional_param('savescheduling', false, PARAM_BOOL) && confirm_sesskey()) {
         echo html_writer::end_tag('div');
         echo html_writer::end_tag('div');
         echo html_writer::end_tag('form');
-
     }
 
     echo $OUTPUT->footer();

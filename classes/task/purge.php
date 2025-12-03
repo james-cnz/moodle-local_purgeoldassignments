@@ -31,7 +31,7 @@ class purge extends adhoc_task {
      */
     public function execute() {
         global $CFG;
-        require_once($CFG->dirroot .'/local/purgeoldassignments/lib.php');
+        require_once($CFG->dirroot . '/local/purgeoldassignments/lib.php');
 
         $contextid = $this->get_custom_data()->contextid;
         $component = $this->get_custom_data()->component;

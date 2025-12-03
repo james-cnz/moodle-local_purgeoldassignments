@@ -32,7 +32,6 @@ function xmldb_local_purgeoldassignments_upgrade($oldversion) {
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2025031300) {
-
         // Define table local_purgeoldassignments to be created.
         $table = new xmldb_table('local_purgeoldassignments');
 
@@ -57,7 +56,6 @@ function xmldb_local_purgeoldassignments_upgrade($oldversion) {
     }
 
     if ($oldversion < 2025051300) {
-
         // Delete broken table rows.
         $DB->delete_records('local_purgeoldassignments', ['timespan' => '0']);
 

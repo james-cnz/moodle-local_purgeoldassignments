@@ -45,11 +45,12 @@ function local_purgeoldassignments_extend_settings_navigation(navigation_node $n
     if (!has_capability('local/purgeoldassignments:purgeassignments', $context)) {
         return;
     }
-    $node = navigation_node::create(get_string('pluginname', 'local_purgeoldassignments'),
-                new moodle_url('/local/purgeoldassignments/purge.php', ['id' => $cm->id]),
-                navigation_node::TYPE_SETTING);
+    $node = navigation_node::create(
+        get_string('pluginname', 'local_purgeoldassignments'),
+        new moodle_url('/local/purgeoldassignments/purge.php', ['id' => $cm->id]),
+        navigation_node::TYPE_SETTING
+    );
     $assignsettingsnode->add_node($node);
-
 }
 
 /**
@@ -122,7 +123,7 @@ function local_purgeoldassignments_get_stats($contextid) {
 
     // File areas we want to allow purging.
     $fileareas = local_purgeoldassignments_components();
-    list($componentsql, $params) = $DB->get_in_or_equal($fileareas, SQL_PARAMS_NAMED);
+    [$componentsql, $params] = $DB->get_in_or_equal($fileareas, SQL_PARAMS_NAMED);
     $filesizes = [];
     $sqlbase = "SELECT sum(filesize) as filesize, component
              FROM {files}
@@ -131,9 +132,9 @@ function local_purgeoldassignments_get_stats($contextid) {
                   and contextid = :context";
     $sqlend = " GROUP BY component";
     $params['context'] = $contextid;
-    $records = $DB->get_records_sql($sqlbase.$sqlend, $params);
+    $records = $DB->get_records_sql($sqlbase . $sqlend, $params);
     foreach ($records as $record) {
-        $filesizes[$record->component] = new stdClass;
+        $filesizes[$record->component] = new stdClass();
         if (!empty($record->filesize)) {
             $filesizes[$record->component]->total = $record->filesize;
         }
@@ -141,7 +142,7 @@ function local_purgeoldassignments_get_stats($contextid) {
 
     // Now get stats for older than 1 year.
     $params['olderthan'] = time() - (YEARSECS);
-    $sql = $sqlbase." AND timemodified < :olderthan ".$sqlend;
+    $sql = $sqlbase . " AND timemodified < :olderthan " . $sqlend;
     $records = $DB->get_records_sql($sql, $params);
     foreach ($records as $record) {
         if (!empty($record->filesize)) {
@@ -151,7 +152,7 @@ function local_purgeoldassignments_get_stats($contextid) {
 
     // Now get stats for older than 2 years.
     $params['olderthan'] = time() - (YEARSECS * 2);
-    $sql = $sqlbase." AND timemodified < :olderthan ".$sqlend;
+    $sql = $sqlbase . " AND timemodified < :olderthan " . $sqlend;
     $records = $DB->get_records_sql($sql, $params);
     foreach ($records as $record) {
         if (!empty($record->filesize)) {
@@ -161,7 +162,7 @@ function local_purgeoldassignments_get_stats($contextid) {
 
     // Now get stats for older than 3 year.
     $params['olderthan'] = time() - (YEARSECS * 3);
-    $sql = $sqlbase." AND timemodified < :olderthan ".$sqlend;
+    $sql = $sqlbase . " AND timemodified < :olderthan " . $sqlend;
     $records = $DB->get_records_sql($sql, $params);
     foreach ($records as $record) {
         if (!empty($record->filesize)) {

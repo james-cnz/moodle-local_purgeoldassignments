@@ -28,14 +28,15 @@ require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . "/clilib.php");
 require_once(__DIR__ . '/../lib.php');
 
-list($options, $unrecognized) = cli_get_params(
+[$options, $unrecognized] = cli_get_params(
     [
         'help' => false,
         'cmid' => null,
         'contextid' => null,
         'component' => null,
         'minageyears' => null,
-    ], [
+    ],
+    [
         'h' => 'help',
     ]
 );
@@ -49,7 +50,8 @@ if ($unrecognized) {
 foreach (['cmid', 'contextid'] as $optionname) {
     if (isset($options[$optionname]) && (!is_string($options[$optionname]) || !preg_match('/^\d+$/', $options[$optionname]))) {
         cli_error(get_string(
-            'cliincorrectvalueerror', 'admin',
+            'cliincorrectvalueerror',
+            'admin',
             (object)['value' => $options[$optionname], 'option' => $optionname]
         ));
     }
@@ -59,7 +61,8 @@ foreach (['cmid', 'contextid'] as $optionname) {
 foreach (['component'] as $optionname) {
     if (isset($options[$optionname]) && !is_string($options[$optionname])) {
         cli_error(get_string(
-            'cliincorrectvalueerror', 'admin',
+            'cliincorrectvalueerror',
+            'admin',
             (object)['value' => $options[$optionname], 'option' => $optionname]
         ));
     }
@@ -69,7 +72,8 @@ foreach (['component'] as $optionname) {
 foreach (['minageyears'] as $optionname) {
     if (isset($options[$optionname]) && (!is_numeric($options[$optionname]) || ($options[$optionname] < 0))) {
         cli_error(get_string(
-            'cliincorrectvalueerror', 'admin',
+            'cliincorrectvalueerror',
+            'admin',
             (object)['value' => $options[$optionname], 'option' => $optionname]
         ));
     }
