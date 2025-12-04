@@ -38,7 +38,7 @@ class purge_old_assignments extends \core\task\scheduled_task {
      */
     public function execute() {
         global $CFG, $DB;
-        require_once($CFG->dirroot .'/local/purgeoldassignments/lib.php');
+        require_once($CFG->dirroot . '/local/purgeoldassignments/lib.php');
 
         $filestopurge = $DB->get_records('local_purgeoldassignments');
 
